@@ -211,6 +211,7 @@ function OracleApp({ apiKey, onClearKey }) {
   const [riskLevel,    setRiskLevel]    = useState("balanced");
   const [categories,   setCategories]   = useState([]);
   const [scoutPrompt,  setScoutPrompt]  = useState("");
+  const [liveSearch,   setLiveSearch]   = useState(false);
   const [savedMarkets, setSavedMarkets] = useState(() => LS.get("oracle:savedMarkets") || []);
 
   // Council
@@ -308,12 +309,14 @@ function OracleApp({ apiKey, onClearKey }) {
     try {
       setScoutStep("Searching for live Kalshi markets...");
       let notes = "";
-      try {
-        notes = await callClaudeSearch(apiKey,
-          "You are a prediction market researcher. Find currently open Kalshi markets. For each write: title, yes/no question, current YES odds, closing date. Plain bullet points, no JSON.",
-          "Today is " + ts + ". Search kalshi.com for open markets. " + rc.instruction + " " + catF + " List each with closing date and odds."
-        );
-      } catch (_) {}
+      if (liveSearch) {
+        try {
+          notes = await callClaudeSearch(apiKey,
+            "You are a prediction market researcher. Find currently open Kalshi markets. For each write: title, yes/no question, current YES odds, closing date. Plain bullet points, no JSON.",
+            "Today is " + ts + ". Search kalshi.com for open markets. " + rc.instruction + " " + catF + " List each with closing date and odds."
+          );
+        } catch (_) {}
+      }
 
       setScoutStep("Organizing by time horizon...");
       const jSys = "You are a JSON API. Output ONLY raw valid JSON. No markdown, no backticks, no prose.";
@@ -646,6 +649,7 @@ NOTES: ${notes || "None — use current events as of " + ts}`;
                   </div>
                   <div style={{ display:"flex", gap:".5rem" }}>
                     <button onClick={() => setShowSettings(s=>!s)} style={{ ...S.C, fontSize:".58rem", letterSpacing:".08em", padding:".45rem .95rem", borderRadius:"5px", background:showSettings?"#1a1a25":"transparent", color:showSettings?"#D4AF37":"#555", border:"1px solid "+(showSettings?"#D4AF37":"#1e1e28"), cursor:"pointer" }}>⚙️ SETTINGS</button>
+                    <button onClick={() => setLiveSearch(s=>!s)} style={{ fontFamily:"'Cinzel',serif", fontSize:".58rem", letterSpacing:".08em", padding:".45rem .95rem", borderRadius:"5px", background:liveSearch?"#4488FF20":"transparent", color:liveSearch?"#4488FF":"#555", border:"1px solid "+(liveSearch?"#4488FF":"#1e1e28"), cursor:"pointer" }}>🌐 {liveSearch?"LIVE ON":"LIVE OFF"}</button>
                     <Btn gold onClick={runScout} disabled={scoutBusy}>{scoutBusy?"SCOUTING...":"🎯 FIND MARKETS"}</Btn>
                   </div>
                 </div>
