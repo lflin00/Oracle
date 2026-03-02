@@ -415,14 +415,13 @@ NOTES: ${notes || "None — use current events as of " + ts}`;
     // argument set and their vote is a deliberate, visible moment.
     setPhase(PHASES.VOTING); setPhaseLbl("Casting votes...");
     log({ type:"phase", text:"🗳️ PHASE 3 — THE VOTE" });
-    const argSum = argsList.map(a => COUNCIL[a.id].name+" (ID "+a.id+"): \""+a.arg+"\"").join("\n\n");
     const tally = {}; COUNCIL.forEach(a => { tally[a.id] = 0; });
 
     for (let i = 0; i < COUNCIL.length; i++) {
       const a = COUNCIL[i]; setActiveIdx(i);
       log({ type:"thinking", text:a.name+" is casting their vote..." });
       const sys = "You are "+a.name+". Personality: "+a.trait+"\nVote for the BEST prediction — NOT yourself (not ID "+i+"). JSON only: {\"vote\":ID_NUMBER,\"reason\":\"2-3 sentences in character\"}";
-      const raw = await callClaude(apiKey, sys, "Question: \""+q+"\"\nPredictions:\n"+predSum+"\nArguments:\n"+argSum+"\nVote. Not yourself ID "+i+".", 300);
+      const raw = await callClaude(apiKey, sys, "Question: \""+q+"\"\nPredictions:\n"+predSum++"\nVote. Not yourself ID "+i+".", 300);
       const v = parseJ(raw);
       let to = v ? parseInt(v.vote) : -1;
       if (isNaN(to)||to===i||to<0||to>=COUNCIL.length) to = predictions.find(p=>p.id!==i)?.id ?? (i===0?1:0);
@@ -433,9 +432,8 @@ NOTES: ${notes || "None — use current events as of " + ts}`;
 
     const winnerId = parseInt(Object.entries(tally).sort((a,b)=>b[1]-a[1])[0][0]);
     const wp = predictions.find(p=>p.id===winnerId);
-    const wa = argsList.find(a=>a.id===winnerId);
     const winAdv = COUNCIL[winnerId];
-    const w = { ...wp, arg:wa?.arg, advisor:winAdv, votes:tally[winnerId], tally, isCustomWin:!!winAdv.isCustom };
+    const w = { ...wp, advisor:winAdv, votes:tally[winnerId], tally, isCustomWin:!!winAdv.isCustom };
     setWinner(w);
     setPhase(PHASES.RESULT); setPhaseLbl("");
     log({ type:"winner", id:winnerId, votes:tally[winnerId], isCustom:!!winAdv.isCustom });
@@ -813,20 +811,7 @@ NOTES: ${notes || "None — use current events as of " + ts}`;
                       </div>
                     );
                   }
-                  if (e.type==="arg") {
-                    const a=COUNCIL[e.id];
-                    return (
-                      <div key={i} className="fin" style={{ background:a.bg+"99", border:"1px solid "+a.color+"20", borderRadius:"6px", padding:".85rem", marginBottom:".6rem" }}>
-                        <div style={{ display:"flex", alignItems:"center", gap:".5rem", marginBottom:".35rem" }}>
-                          <span style={{ fontSize:"1rem" }}>{a.emoji}</span>
-                          <span style={{ ...S.C, fontSize:".58rem", color:a.color }}>{a.name}</span>
-                          {a.isCustom && <span style={{ ...S.C, fontSize:".46rem", background:a.color+"25", color:a.color, padding:"1px 6px", borderRadius:"3px" }}>YOUR ADVISOR</span>}
-                          <span style={{ ...S.C, fontSize:".46rem", color:"#333", marginLeft:"auto", letterSpacing:".1em" }}>ARGUES</span>
-                        </div>
-                        <div style={{ ...S.R, color:"#aaa" }}>{e.text}</div>
-                      </div>
-                    );
-                  }
+
                   if (e.type==="vote") {
                     const from=COUNCIL[e.from], to=COUNCIL[e.to];
                     return (
@@ -901,7 +886,6 @@ NOTES: ${notes || "None — use current events as of " + ts}`;
                     <div style={{ ...S.C, fontSize:".46rem", color:"#888", letterSpacing:".15em" }}>KALSHI BET</div>
                     <div style={{ ...S.C, fontSize:"1.1rem", color:winner.bet?.startsWith("NO")?"#FF4444":"#00C896" }}>{winner.bet}</div>
                   </div>
-                  {winner.arg && <div style={{ ...S.R, color:"#666", maxWidth:"540px", margin:"0 auto 1.5rem", fontStyle:"italic" }}>{winner.arg}</div>}
                   <div style={{ display:"flex", gap:"1rem", justifyContent:"center", flexWrap:"wrap" }}>
                     <Btn gold onClick={saveBet}>SAVE BET</Btn>
                     <Btn onClick={() => { resetCouncil(); setQuestion(""); }}>NEW QUESTION</Btn>
