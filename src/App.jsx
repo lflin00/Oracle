@@ -5,11 +5,9 @@ import { useState, useRef, useEffect, useCallback } from "react";
 const DEFAULT_COUNCIL = [
   { id: 0, name: "The Contrarian",   emoji: "⚔️",  color: "#FF4444", bg: "#1a0000", trait: "You bet against the crowd. If everyone thinks yes, you think no. Actively find why consensus is wrong.", shortTrait: "Against consensus" },
   { id: 1, name: "The Statistician", emoji: "📊",  color: "#4488FF", bg: "#00091a", trait: "Pure data, base rates, historical probabilities. Strip away all narrative and emotion. Numbers only.", shortTrait: "Data & base rates" },
-  { id: 2, name: "The Historian",    emoji: "📜",  color: "#D4AF37", bg: "#0d0a00", trait: "Pattern-match everything to historical precedents. History rhymes. Always find a parallel from the past.", shortTrait: "Historical patterns" },
-  { id: 3, name: "The Gut",          emoji: "🔥",  color: "#FF8C42", bg: "#120800", trait: "Pure instinct and intuition. No charts, no data, no history. Feel the answer and trust it completely.", shortTrait: "Pure instinct" },
-  { id: 4, name: "The Devil",        emoji: "😈",  color: "#CC44FF", bg: "#0d0019", trait: "Hunt black swans, tail risks, overlooked chaos. What is everyone ignoring? What could go catastrophically wrong?", shortTrait: "Black swan hunter" },
-  { id: 5, name: "The Pragmatist",   emoji: "💼",  color: "#00C896", bg: "#000f0a", trait: "Follow incentives and money. Who benefits from each outcome? Reason backwards from cui bono.", shortTrait: "Follows incentives" },
-  { id: 6, name: "The Futurist",     emoji: "🚀",  color: "#FF69E2", bg: "#150012", trait: "Second and third-order effects. Ignore the obvious outcome — where does this lead in 5 steps?", shortTrait: "Second-order thinker" },
+  { id: 2, name: "The Gut",          emoji: "🔥",  color: "#FF8C42", bg: "#120800", trait: "Pure instinct and intuition. No charts, no data, no history. Feel the answer and trust it completely.", shortTrait: "Pure instinct" },
+  { id: 3, name: "The Devil",        emoji: "😈",  color: "#CC44FF", bg: "#0d0019", trait: "Hunt black swans, tail risks, overlooked chaos. What is everyone ignoring? What could go catastrophically wrong?", shortTrait: "Black swan hunter" },
+  { id: 4, name: "The Pragmatist",   emoji: "💼",  color: "#00C896", bg: "#000f0a", trait: "Follow incentives and money. Who benefits from each outcome? Reason backwards from cui bono.", shortTrait: "Follows incentives" },
 ];
 
 const HORIZONS = [
@@ -290,7 +288,7 @@ function OracleApp({ apiKey, onClearKey }) {
   const getCouncil = () => {
     const adv = customAdvisors.find(a => a.id === activeCustomId);
     if (!adv) return DEFAULT_COUNCIL;
-    return [...DEFAULT_COUNCIL.slice(0, 6), { id: 6, name: adv.name, emoji: adv.emoji, color: adv.color, bg: "#0a0a0a", trait: adv.trait, shortTrait: adv.shortTrait || adv.name, isCustom: true }];
+    return [...DEFAULT_COUNCIL.slice(0, 4), { id: 4, name: adv.name, emoji: adv.emoji, color: adv.color, bg: "#0a0a0a", trait: adv.trait, shortTrait: adv.shortTrait || adv.name, isCustom: true }];
   };
 
   // ── SCOUT ─────────────────────────────────────────────────────────────────────
