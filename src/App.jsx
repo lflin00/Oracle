@@ -422,7 +422,7 @@ NOTES: ${notes || "None — use current events as of " + ts}`;
       const a = COUNCIL[i]; setActiveIdx(i);
       log({ type:"thinking", text:a.name+" is casting their vote..." });
       const sys = "You are "+a.name+". Personality: "+a.trait+"\nVote for the BEST prediction — NOT yourself (not ID "+i+"). JSON only: {\"vote\":ID_NUMBER,\"reason\":\"2-3 sentences in character\"}";
-      const raw = await callClaude(apiKey, sys, "Question: \""+q+"\"\nPredictions:\n"+predSum++"\nVote. Not yourself ID "+i+".", 300);
+      const raw = await callClaude(apiKey, sys, "Question: \""+q+"\"\"\nPredictions:\n"+predSum+"\nVote. Not yourself ID "+i+".", 300);
       const v = parseJ(raw);
       let to = v ? parseInt(v.vote) : -1;
       if (isNaN(to)||to===i||to<0||to>=COUNCIL.length) to = predictions.find(p=>p.id!==i)?.id ?? (i===0?1:0);
