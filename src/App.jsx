@@ -54,6 +54,26 @@ const LS = {
   },
 };
 
+
+// ── SUPABASE LEADERBOARD ──────────────────────────────────────────────────────
+const SUPABASE_URL = "https://lfkzgzvhcnxlvthyervd.supabase.co";
+const SUPABASE_KEY = "sb_publishable_do9fzfrjneVwLPIx-qQzbw_gHtZI6nw";
+
+async function sbGetLeaderboard() {
+  const res = await fetch(SUPABASE_URL + "/rest/v1/leaderboard?order=points.desc&limit=50", {
+    headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY }
+  });
+  return await res.json();
+}
+
+async function sbUpsertLeaderboard(entry) {
+  await fetch(SUPABASE_URL + "/rest/v1/leaderboard", {
+    method: "POST",
+    headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+    body: JSON.stringify({ username: entry.username, points: entry.points, advisor_name: entry.advisorName, advisor_emoji: entry.advisorEmoji, wins: entry.wins, total: entry.total, updated_at: entry.updatedAt })
+  });
+}
+
 // ── API ───────────────────────────────────────────────────────────────────────
 
 // apiKey is passed in from state so every call uses the current key.
@@ -257,21 +277,22 @@ function OracleApp({ apiKey, onClearKey }) {
   useEffect(() => { LS.set("oracle:username",       username);       }, [username]);
 
   // ── LEADERBOARD (localStorage-backed, swap for real DB in production) ────────
-  const loadLeaderboard = useCallback(() => {
+  const loadLeaderboard = useCallback(async () => {
     setLbLoading(true);
     try {
-      const keys = LS.listShared("lb:");
-      const parsed = keys
-        .map(k => LS.getShared(k))
-        .filter(Boolean)
-        .sort((a, b) => b.points - a.points)
-        .slice(0, 50);
-      setLbData(parsed);
+      const data = await sbGetLeaderboard();
+      if (Array.isArray(data)) {
+        setLbData(data.map(e => ({
+          username: e.username, points: e.points,
+          advisorName: e.advisor_name, advisorEmoji: e.advisor_emoji,
+          wins: e.wins, total: e.total, updatedAt: e.updated_at
+        })));
+      }
     } catch (_) {}
     setLbLoading(false);
   }, []);
 
-  const pushLeaderboard = useCallback((pts) => {
+  const pushLeaderboard = useCallback(async (pts) => {
     if (!username) return;
     const adv = customAdvisors.find(a => a.id === activeCustomId);
     const entry = {
@@ -280,7 +301,7 @@ function OracleApp({ apiKey, onClearKey }) {
       wins: history.filter(h => h.outcome === "WIN").length,
       total: history.length, updatedAt: new Date().toLocaleDateString(),
     };
-    LS.setShared("lb:" + username.toLowerCase().replace(/\s+/g,"_"), entry);
+    try { await sbUpsertLeaderboard(entry); } catch (_) {}
   }, [username, customAdvisors, activeCustomId, history]);
 
   useEffect(() => { if (tab === MAIN_TABS.LEADERBOARD) loadLeaderboard(); }, [tab, loadLeaderboard]);
