@@ -1341,7 +1341,8 @@ Raw JSON array only.`;
             ))}
 
             <div style={{ textAlign:"center", marginTop:"2rem", paddingTop:"1.5rem", borderTop:"1px solid #1a1a25" }}>
-              <div style={{ ...S.R, color:"#333", fontSize:".78rem", fontStyle:"italic" }}>Built with Claude · Kalshi API · Polymarket API · Supabase</div>
+              <a href="/Oracle.dmg" download style={{ display:"inline-block", background:"#D4AF37", color:"#000", padding:".6rem 1.8rem", borderRadius:"6px", fontFamily:"'Cinzel',serif", fontSize:".62rem", letterSpacing:".12em", fontWeight:"bold", textDecoration:"none", marginBottom:"1rem" }}>⬇ DOWNLOAD FOR MAC</a>
+              <div style={{ ...S.R, color:"#333", fontSize:".78rem", fontStyle:"italic", marginTop:".75rem" }}>Built with Claude · Kalshi API · Polymarket API · Supabase</div>
             </div>
           </div>
         )}
