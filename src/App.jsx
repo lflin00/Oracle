@@ -1231,6 +1231,62 @@ Raw JSON array only.`;
         )}
 
         {/* ══════════════════ LEADERBOARD ══════════════════ */}
+
+        {tab===MAIN_TABS.ARBITRAGE && (
+          <div>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"1.25rem", flexWrap:"wrap", gap:"1rem" }}>
+              <div>
+                <div style={{ ...S.C, fontSize:".9rem", color:"#D4AF37", letterSpacing:".08em", marginBottom:".25rem" }}>ARBITRAGE SCANNER</div>
+                <div style={{ ...S.R, color:"#555", fontSize:".85rem" }}>Cross-platform mispricings between Kalshi and Polymarket.</div>
+              </div>
+              <Btn gold onClick={runArbitrage} disabled={arbBusy}>{arbBusy ? "SCANNING..." : "⚡ SCAN NOW"}</Btn>
+            </div>
+            {arbBusy && <div style={{ textAlign:"center", padding:"3rem" }}><div style={{ ...S.C, fontSize:".62rem", letterSpacing:".2em", color:"#D4AF37" }} className="pulse">SCANNING KALSHI & POLYMARKET...</div></div>}
+            {arbErr && <div style={{ background:"#1a0000", border:"1px solid #FF444433", borderRadius:"6px", padding:"1rem", marginBottom:"1rem" }}><div style={{ ...S.R, color:"#FF4444", marginBottom:".5rem" }}>⚠️ {arbErr}</div><Btn small danger onClick={runArbitrage}>TRY AGAIN</Btn></div>}
+            {arbData.length > 0 && (
+              <div style={{ display:"flex", flexDirection:"column", gap:"1rem" }}>
+                {arbData.map((a, i) => {
+                  const confColor = a.confidence==="High"?"#FF4444":a.confidence==="Medium"?"#D4AF37":"#555";
+                  const isCross = a.type==="Cross-Platform";
+                  return (
+                    <div key={i} className="fin card" style={{ padding:"1.25rem", border:"1px solid "+confColor+"30" }}>
+                      <div style={{ display:"flex", gap:".5rem", marginBottom:".5rem", flexWrap:"wrap", alignItems:"center" }}>
+                        <span style={{ ...S.C, fontSize:".52rem", background:isCross?"#CC44FF20":"#4488FF20", color:isCross?"#CC44FF":"#4488FF", border:"1px solid "+(isCross?"#CC44FF40":"#4488FF40"), borderRadius:"3px", padding:"1px 8px" }}>{a.type}</span>
+                        <span style={{ ...S.C, fontSize:".52rem", background:confColor+"20", color:confColor, border:"1px solid "+confColor+"40", borderRadius:"3px", padding:"1px 8px" }}>{a.confidence} Confidence</span>
+                        {a.discrepancy && <span style={{ ...S.C, fontSize:".58rem", color:"#D4AF37", fontWeight:"bold" }}>⚡ {a.discrepancy}</span>}
+                      </div>
+                      <div style={{ ...S.C, fontSize:".78rem", color:"#e0e0e0", marginBottom:".35rem" }}>{a.title}</div>
+                      <div style={{ ...S.R, fontSize:".85rem", color:"#888", fontStyle:"italic", marginBottom:".75rem" }}>{a.opportunity}</div>
+                      <div style={{ display:"flex", gap:"1rem", flexWrap:"wrap" }}>
+                        {a.kalshiOdds && a.kalshiOdds!=="N/A" && (
+                          <div style={{ background:"#0f0f14", border:"1px solid #1e1e28", borderRadius:"6px", padding:".6rem 1rem", flex:1, minWidth:"130px" }}>
+                            <div style={{ ...S.C, fontSize:".48rem", color:"#444", letterSpacing:".15em", marginBottom:".2rem" }}>KALSHI</div>
+                            <div style={{ ...S.C, fontSize:".9rem", color:"#00C896" }}>{a.kalshiOdds}</div>
+                            {a.kalshiTitle && <div style={{ ...S.R, fontSize:".75rem", color:"#555", marginTop:".15rem" }}>{a.kalshiTitle}</div>}
+                          </div>
+                        )}
+                        {a.polyOdds && a.polyOdds!=="N/A" && (
+                          <div style={{ background:"#0f0f14", border:"1px solid #1e1e28", borderRadius:"6px", padding:".6rem 1rem", flex:1, minWidth:"130px" }}>
+                            <div style={{ ...S.C, fontSize:".48rem", color:"#444", letterSpacing:".15em", marginBottom:".2rem" }}>POLYMARKET</div>
+                            <div style={{ ...S.C, fontSize:".9rem", color:"#4488FF" }}>{a.polyOdds}</div>
+                            {a.polyTitle && <div style={{ ...S.R, fontSize:".75rem", color:"#555", marginTop:".15rem" }}>{a.polyTitle}</div>}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {!arbBusy && !arbData.length && !arbErr && (
+              <div style={{ textAlign:"center", padding:"4rem 2rem", border:"1px dashed #1a1a25", borderRadius:"10px" }}>
+                <div style={{ fontSize:"2.5rem", opacity:.15, marginBottom:"1rem" }}>⚡</div>
+                <div style={{ ...S.C, fontSize:".58rem", color:"#444", letterSpacing:".2em", marginBottom:".5rem" }}>NO SCAN RUN YET</div>
+                <div style={{ ...S.R, color:"#444", fontStyle:"italic" }}>Click "Scan Now" to find arbitrage opportunities.</div>
+              </div>
+            )}
+          </div>
+        )}
         {tab===MAIN_TABS.LEADERBOARD && (
           <div>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"1.5rem", flexWrap:"wrap", gap:"1rem" }}>
