@@ -325,44 +325,35 @@ function OracleApp({ apiKey, onClearKey }) {
     const today = new Date();
     const ts = fmtDate(today);
     const rc = RISK_CONFIGS[riskLevel];
-    const h = HORIZONS.find(x => x.key === horizon);
+    const h = HORIZONS.find(x => x.key === horizon) || HORIZONS[1];
     const catF = categories.length > 0 ? "Categories only: " + categories.join(", ") + "." : "Include diverse categories.";
     const cust = scoutPrompt.trim() ? "Extra: " + scoutPrompt.trim() : "";
-
     try {
-      setScoutStep("Searching for live Kalshi markets...");
       let notes = "";
       if (liveSearch) {
+        setScoutStep("Searching live markets...");
         try {
-          notes = await callClaudeSearch(apiKey,
-            "You are a prediction market researcher. Find currently open Kalshi markets. For each write: title, yes/no question, current YES odds, closing date. Plain bullet points, no JSON.",
-            "Today is " + ts + ". Search kalshi.com for open markets. " + rc.instruction + " " + catF + " List each with closing date and odds."
+          notes = await callClaudeSearch(
+            "Find open Kalshi prediction markets. Bullet points only, no JSON.",
+            "Today is " + ts + ". Find Kalshi markets closing " + h.closes + ". " + rc.instruction + " " + catF
           );
         } catch (_) {}
       }
-
-      setScoutStep("Organizing by time horizon...");
-      const jSys = "You are a JSON API. Output ONLY raw valid JSON. No markdown, no backticks, no prose.";
-      const jUsr = `Organize these prediction market notes into a JSON object.
-TODAY: ${ts}. SHORT: closes by ${d14s}. MEDIUM: ${d14s}–${d90s}. LONG: after ${d90s}.
-Risk: ${rc.instruction} ${catF} ${cust}
-Fill missing tiers with invented-but-plausible Kalshi markets. Return exactly:
-{"short":[{"title":"max 8 words","question":"Will X happen by date?","category":"Politics","currentOdds":"YES at 55%","closes":"${d14s}","whyInteresting":"One sentence.","councilPrompt":"Kalshi: Will X by ${d14s}? YES 55%. Analyze and give a specific YES or NO Kalshi bet with exact numbers and date."}],"medium":[...],"long":[...]}
-9 markets total, 3 per tier.
-NOTES: ${notes || "None — use current events as of " + ts}`;
-
-      let parsed = parseJ(await callClaude(apiKey, jSys, jUsr, 5000));
-      if (!parsed || Array.isArray(parsed)) {
-        parsed = parseJ(await callClaude(apiKey, jSys, `Generate 9 plausible Kalshi markets as of ${ts}. 3 per tier. ${rc.instruction} ${catF} Raw JSON only:\n{"short":[{"title":"BTC above $95k","question":"Will Bitcoin close above $95,000 by ${d14s}?","category":"Crypto","currentOdds":"YES at 38%","closes":"${d14s}","whyInteresting":"Key resistance level.","councilPrompt":"Kalshi: Bitcoin above $95k by ${d14s}? YES 38%. Give a specific YES/NO bet."}],"medium":[{"title":"placeholder","question":"Will X happen?","category":"Finance","currentOdds":"YES at 50%","closes":"${d90s}","whyInteresting":"Uncertain.","councilPrompt":"Analyze."}],"long":[{"title":"placeholder","question":"Will Y happen?","category":"Politics","currentOdds":"YES at 40%","closes":"December 31, 2026","whyInteresting":"Long shot.","councilPrompt":"Analyze."}]}`, 5000));
-      }
-      if (!parsed || Array.isArray(parsed)) throw new Error("Could not generate markets. Please try again.");
-
-      const norm = (m, i) => ({ title:m.title||"Market "+(i+1), question:m.question||m.title||"", category:m.category||"Other", currentOdds:m.currentOdds||"YES at 50%", closes:m.closes||"TBD", whyInteresting:m.whyInteresting||"", councilPrompt:m.councilPrompt||("Kalshi: \""+m.title+"\". "+m.currentOdds+". Closes "+m.closes+". Give a specific YES/NO binary bet.") });
-      const pad = (arr, k) => { const a=(arr||[]).slice(0,3).map(norm); while(a.length<3) a.push(norm({title:"Market",closes:k==="short"?d14s:k==="medium"?d90s:"Dec 31, 2026"},a.length)); return a; };
-      
-    } catch (e) { setScoutErr(e.message||"Unknown error. Try again."); }
+      setScoutStep("Generating markets...");
+      const jSys = "JSON API. Output raw valid JSON array only. No markdown, no prose.";
+      const jUsr = `Today: ${ts}. Generate 4 Kalshi prediction markets closing ${h.closes}. ${rc.instruction} ${catF} ${cust}
+Return a JSON array: [{"title":"max 8 words","question":"Will X?","category":"Crypto","currentOdds":"YES at 55%","closes":"specific date","whyInteresting":"1 sentence.","councilPrompt":"Kalshi: Will X? YES 55%. YES or NO bet with numbers and date."}]
+Exactly 4 items. Raw JSON array only.${notes ? " Live data: " + notes : ""}`;
+      const raw = await callClaude(apiKey, jSys, jUsr, 2000);
+      const match = raw.replace(/```json|```/g, "").trim().match(/\[[\s\S]*\]/);
+      if (!match) throw new Error("Could not generate markets. Try again.");
+      const arr = JSON.parse(match[0]);
+      if (!arr.length) throw new Error("Could not generate markets. Try again.");
+      const norm = (m, i) => ({ title: m.title||"Market "+(i+1), question: m.question||"", category: m.category||"Other", currentOdds: m.currentOdds||"YES at 50%", closes: m.closes||"TBD", whyInteresting: m.whyInteresting||"", councilPrompt: m.councilPrompt||("Kalshi: ""+m.title+"". "+m.currentOdds+". Closes "+m.closes+". YES/NO bet.") });
+      setScoutData(arr.slice(0, 4).map(norm));
+    } catch (e) { setScoutErr(e.message || "Unknown error. Try again."); }
     setScoutStep(""); setScoutBusy(false);
-  };
+  };;
 
   const pickMarket = (m) => { setQuestion(m.councilPrompt); resetCouncil(); setTab(MAIN_TABS.COUNCIL); };
 
