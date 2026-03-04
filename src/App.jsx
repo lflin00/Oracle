@@ -303,9 +303,6 @@ function OracleApp({ apiKey, onClearKey }) {
   const [arbData, setArbData] = useState([]);
   const [arbBusy, setArbBusy] = useState(false);
   const [arbErr, setArbErr] = useState("");
-  const [arbData, setArbData] = useState([]);
-  const [arbBusy, setArbBusy] = useState(false);
-  const [arbErr, setArbErr] = useState("");
   const logEndRef = useRef(null);
   useEffect(() => { logEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [dialogue]);
 
