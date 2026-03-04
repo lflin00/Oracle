@@ -449,6 +449,7 @@ NOTES: ${notes || "None — use current events as of " + ts}`;
       if (isNaN(to)||to===i||to<0||to>=COUNCIL.length) to = predictions.find(p=>p.id!==i)?.id ?? (i===0?1:0);
       tally[to]++;
       log({ type:"vote", from:i, to, reason:v?.reason||"Strong analysis." });
+      await new Promise(r => setTimeout(r, 5000));
     }
     setActiveIdx(-1);
 
