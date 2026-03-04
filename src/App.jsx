@@ -540,26 +540,9 @@ Raw JSON array only.`;
     setPreds(predictions);
 
     // ── Phase 2: PARALLEL arguments ───────────────────────────────────────────
-    // All 7 advisors argue simultaneously — cuts this phase from ~50s to ~10s
-    setPhase(PHASES.ARGUING); setPhaseLbl("Making their case...");
-    setActiveIdx("all");
-    log({ type:"phase", text:"🗣️ PHASE 2 — ARGUMENTS (parallel)" });
-    log({ type:"thinking", text:"All 7 advisors preparing their arguments simultaneously..." });
-
-    const predSum = predictions.map(p => COUNCIL[p.id].name+": \""+p.prediction+"\" | "+p.bet+" | "+p.reasoning).join("\n\n");
-
-    const argPromises = COUNCIL.map(async (a, i) => {
-      const sys = "You are "+a.name+". Personality: "+a.trait+"\nArgue passionately for YOUR prediction. Be direct, in-character, use specific data. 3-5 sentences. No JSON.";
-      const argText = await callClaude(apiKey, sys, "Question: \""+q+"\"\nYour bet: "+predictions[i].bet+"\nAll predictions:\n"+predSum+"\nArgue why yours is best.", 500);
-      return { id:a.id, arg:argText.trim() };
-    });
-
-    const argResults = await Promise.allSettled(argPromises);
-    const argsList = argResults.map((r, i) =>
-      r.status === "fulfilled" ? r.value : { id:i, arg:"I stand by my analysis." }
-    );
-
-    argsList.forEach(a => log({ type:"arg", id:a.id, text:a.arg }));
+    setPhase(PHASES.ARGUING);
+    const predSum = predictions.map(p => COUNCIL[p.id].name+": "+p.bet+" — "+p.reasoning).join("\n");
+    const argsList = predictions.map(p => ({ id:p.id, arg:p.reasoning }));
     setActiveIdx(-1);
 
     // ── Phase 3: SEQUENTIAL voting ────────────────────────────────────────────
