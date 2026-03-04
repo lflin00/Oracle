@@ -353,7 +353,7 @@ Exactly 4 items. Raw JSON array only.${notes ? " Live data: " + notes : ""}`;
       setScoutData(arr.slice(0, 4).map(norm));
     } catch (e) { setScoutErr(e.message || "Unknown error. Try again."); }
     setScoutStep(""); setScoutBusy(false);
-  };;
+  };
 
   const pickMarket = (m) => { setQuestion(m.councilPrompt); resetCouncil(); setTab(MAIN_TABS.COUNCIL); };
 
