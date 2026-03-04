@@ -75,6 +75,31 @@ async function sbUpsertLeaderboard(entry) {
   });
 }
 
+async function sbGetAdvisors(username) {
+  if (!username) return [];
+  const res = await fetch(SUPABASE_URL + "/rest/v1/advisors?username=eq." + encodeURIComponent(username) + "&order=created_at.asc", {
+    headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY }
+  });
+  const data = await res.json();
+  return (data || []).map(a => ({ id: a.id, name: a.name, emoji: a.emoji, color: a.color, trait: a.trait, shortTrait: a.short_trait }));
+}
+
+async function sbSaveAdvisor(username, adv) {
+  if (!username) return;
+  await fetch(SUPABASE_URL + "/rest/v1/advisors", {
+    method: "POST",
+    headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+    body: JSON.stringify({ id: String(adv.id), username, name: adv.name, emoji: adv.emoji, color: adv.color, trait: adv.trait, short_trait: adv.shortTrait })
+  });
+}
+
+async function sbDeleteAdvisor(id) {
+  await fetch(SUPABASE_URL + "/rest/v1/advisors?id=eq." + encodeURIComponent(id), {
+    method: "DELETE",
+    headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY }
+  });
+}
+
 // ── API ───────────────────────────────────────────────────────────────────────
 
 // apiKey is passed in from state so every call uses the current key.
