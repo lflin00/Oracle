@@ -349,7 +349,7 @@ Exactly 4 items. Raw JSON array only.${notes ? " Live data: " + notes : ""}`;
       if (!match) throw new Error("Could not generate markets. Try again.");
       const arr = JSON.parse(match[0]);
       if (!arr.length) throw new Error("Could not generate markets. Try again.");
-      const norm = (m, i) => ({ title: m.title||"Market "+(i+1), question: m.question||"", category: m.category||"Other", currentOdds: m.currentOdds||"YES at 50%", closes: m.closes||"TBD", whyInteresting: m.whyInteresting||"", councilPrompt: m.councilPrompt||("Kalshi: ""+m.title+"". "+m.currentOdds+". Closes "+m.closes+". YES/NO bet.") });
+      const norm = (m, i) => ({ title: m.title||"Market "+(i+1), question: m.question||"", category: m.category||"Other", currentOdds: m.currentOdds||"YES at 50%", closes: m.closes||"TBD", whyInteresting: m.whyInteresting||"", councilPrompt: m.councilPrompt||("Kalshi: " + m.title + ". " + m.currentOdds + ". Closes " + m.closes + ". YES/NO bet.") });
       setScoutData(arr.slice(0, 4).map(norm));
     } catch (e) { setScoutErr(e.message || "Unknown error. Try again."); }
     setScoutStep(""); setScoutBusy(false);
