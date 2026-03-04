@@ -678,6 +678,13 @@ NOTES: ${notes || "None — use current events as of " + ts}`;
                   </div>
                 </div>
 
+                {/* HORIZON SELECTOR */}
+                <div style={{ display:"flex", gap:".4rem", flexWrap:"wrap", marginBottom:"1rem" }}>
+                  {HORIZONS.map(h => (
+                    <button key={h.key} onClick={() => setHorizon(h.key)} style={{ fontFamily:"'Cinzel',serif", fontSize:".56rem", letterSpacing:".08em", padding:".38rem .9rem", borderRadius:"4px", background:horizon===h.key?h.color+"20":"transparent", color:horizon===h.key?h.color:"#555", border:"1px solid "+(horizon===h.key?h.color:"#1e1e28"), cursor:"pointer" }}>{h.icon} {h.label}</button>
+                  ))}
+                </div>
+
                 {showSettings && (
                   <div className="fin" style={{ background:"#0a0a0f", border:"1px solid #1e1e28", borderRadius:"10px", padding:"1.25rem", marginBottom:"1.25rem" }}>
                     <div style={{ ...S.C, fontSize:".58rem", color:"#D4AF37", letterSpacing:".2em", marginBottom:"1rem" }}>SCOUT SETTINGS</div>
