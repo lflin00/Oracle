@@ -11,9 +11,10 @@ const DEFAULT_COUNCIL = [
 ];
 
 const HORIZONS = [
-  { key: "short",  label: "SHORT-TERM",  icon: "⚡", color: "#FF4444", desc: "Closes within 2 weeks",        badge: "< 2 WKS"    },
-  { key: "medium", label: "MEDIUM-TERM", icon: "📅", color: "#D4AF37", desc: "Closes in 2 weeks – 3 months", badge: "2 WKS–3 MO" },
-  { key: "long",   label: "LONG-TERM",   icon: "🔭", color: "#4488FF", desc: "Closes in 3+ months",           badge: "3+ MONTHS"  },
+  { key: "ultrashort", label: "ULTRA-SHORT", icon: "⚡", color: "#FF4444", desc: "Closes within 48 hours", badge: "< 48 HRS", closes: "within 48 hours" },
+  { key: "short",      label: "SHORT-TERM",  icon: "🔥", color: "#FF8C42", desc: "Closes within 2 weeks",  badge: "< 2 WKS",  closes: "within 2 weeks" },
+  { key: "medium",     label: "MEDIUM-TERM", icon: "📅", color: "#D4AF37", desc: "Closes in 1–3 months",   badge: "1–3 MO",   closes: "in 1 to 3 months" },
+  { key: "long",       label: "LONG-TERM",   icon: "🔭", color: "#4488FF", desc: "Closes in 3+ months",    badge: "3+ MO",    closes: "in more than 3 months" },
 ];
 
 const RISK_CONFIGS = {
@@ -232,6 +233,7 @@ function OracleApp({ apiKey, onClearKey }) {
   const [categories,   setCategories]   = useState([]);
   const [scoutPrompt,  setScoutPrompt]  = useState("");
   const [liveSearch,   setLiveSearch]   = useState(false);
+  const [horizon,      setHorizon]      = useState("short");
   const [savedMarkets, setSavedMarkets] = useState(() => LS.get("oracle:savedMarkets") || []);
 
   // Council
@@ -320,12 +322,12 @@ function OracleApp({ apiKey, onClearKey }) {
 
   const runScout = async () => {
     setScoutBusy(true); setScoutData(null); setScoutErr("");
-    const today = new Date(), d14 = new Date(today), d90 = new Date(today);
-    d14.setDate(today.getDate()+14); d90.setMonth(today.getMonth()+3);
-    const ts = fmtDate(today), d14s = fmtDate(d14), d90s = fmtDate(d90);
+    const today = new Date();
+    const ts = fmtDate(today);
     const rc = RISK_CONFIGS[riskLevel];
+    const h = HORIZONS.find(x => x.key === horizon);
     const catF = categories.length > 0 ? "Categories only: " + categories.join(", ") + "." : "Include diverse categories.";
-    const cust = scoutPrompt.trim() ? "Extra user instructions: " + scoutPrompt.trim() : "";
+    const cust = scoutPrompt.trim() ? "Extra: " + scoutPrompt.trim() : "";
 
     try {
       setScoutStep("Searching for live Kalshi markets...");
@@ -357,7 +359,7 @@ NOTES: ${notes || "None — use current events as of " + ts}`;
 
       const norm = (m, i) => ({ title:m.title||"Market "+(i+1), question:m.question||m.title||"", category:m.category||"Other", currentOdds:m.currentOdds||"YES at 50%", closes:m.closes||"TBD", whyInteresting:m.whyInteresting||"", councilPrompt:m.councilPrompt||("Kalshi: \""+m.title+"\". "+m.currentOdds+". Closes "+m.closes+". Give a specific YES/NO binary bet.") });
       const pad = (arr, k) => { const a=(arr||[]).slice(0,3).map(norm); while(a.length<3) a.push(norm({title:"Market",closes:k==="short"?d14s:k==="medium"?d90s:"Dec 31, 2026"},a.length)); return a; };
-      setScoutData({ short:pad(parsed.short,"short"), medium:pad(parsed.medium,"medium"), long:pad(parsed.long,"long") });
+      
     } catch (e) { setScoutErr(e.message||"Unknown error. Try again."); }
     setScoutStep(""); setScoutBusy(false);
   };
