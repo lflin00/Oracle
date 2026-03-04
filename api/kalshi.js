@@ -3,6 +3,13 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET');
 
   const { horizon } = req.query;
+  if (horizon === 'all') {
+    try {
+      const response = await fetch('https://api.elections.kalshi.com/trade-api/v2/markets?status=open&limit=100');
+      const data = await response.json();
+      return res.status(200).json(data);
+    } catch(e) { return res.status(500).json({ error: e.message }); }
+  }
   const now = new Date();
   const params = new URLSearchParams({ status: 'open', limit: '100' });
 

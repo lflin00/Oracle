@@ -300,6 +300,9 @@ function OracleApp({ apiKey, onClearKey }) {
   const [username,  setUsername]  = useState(() => LS.get("oracle:username") || "");
   const [draftUser, setDraftUser] = useState("");
 
+  const [arbData, setArbData] = useState([]);
+  const [arbBusy, setArbBusy] = useState(false);
+  const [arbErr, setArbErr] = useState("");
   const logEndRef = useRef(null);
   useEffect(() => { logEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [dialogue]);
 
@@ -352,6 +355,72 @@ function OracleApp({ apiKey, onClearKey }) {
   const saveMarket   = (m) => setSavedMarkets(p => p.find(s => s.title === m.title) ? p : [{ ...m, savedAt: new Date().toLocaleDateString() }, ...p]);
   const unsaveMarket = (t) => setSavedMarkets(p => p.filter(m => m.title !== t));
   const isSaved      = (m) => savedMarkets.some(s => s.title === m.title);
+
+  const runArbitrage = async () => {
+    setArbBusy(true); setArbData([]); setArbErr("");
+    try {
+      // Fetch from both platforms in parallel
+      const [kalshiRes, polyRes] = await Promise.all([
+        fetch('/api/kalshi?horizon=all').catch(() => null),
+        fetch('/api/polymarket').catch(() => null),
+      ]);
+
+      const kalshiJson = kalshiRes ? await kalshiRes.json() : {};
+      const polyJson = polyRes ? await polyRes.json() : [];
+
+      const kalshiMarkets = (kalshiJson.markets || [])
+        .filter(m => m.status === 'open' && m.yes_bid > 0)
+        .slice(0, 80)
+        .map(m => ({ platform: 'Kalshi', title: m.title, odds: m.yes_bid, ticker: m.ticker, url: 'https://kalshi.com/markets/' + m.event_ticker }));
+
+      const polyMarkets = (Array.isArray(polyJson) ? polyJson : [])
+        .filter(m => m.active && m.outcomePrices)
+        .slice(0, 80)
+        .map(m => {
+          let price = 50;
+          try { price = Math.round(parseFloat(JSON.parse(m.outcomePrices)[0]) * 100); } catch(_) {}
+          return { platform: 'Polymarket', title: m.question || m.title || '', odds: price, url: 'https://polymarket.com/event/' + m.slug };
+        });
+
+      if (!kalshiMarkets.length && !polyMarkets.length) throw new Error("Could not fetch market data. Try again.");
+
+      // Ask Claude to find arbitrage opportunities
+      const kSummary = kalshiMarkets.map(m => `[Kalshi] ${m.title}: YES ${m.odds}%`).join('
+');
+      const pSummary = polyMarkets.map(m => `[Polymarket] ${m.title}: YES ${m.odds}%`).join('
+');
+
+      const sys = "You are an arbitrage analyst for prediction markets. Find markets that appear to cover the same event but have different odds across platforms, OR find logical inconsistencies within a single platform. JSON only.";
+      const usr = `Find the top 5 arbitrage or mispricing opportunities from these markets.
+For cross-platform: same event priced differently.
+For single-platform: related markets whose odds are logically inconsistent.
+
+Return: [{"title":"short description","type":"Cross-Platform OR Internal","kalshiOdds":"X% or N/A","polyOdds":"Y% or N/A","discrepancy":"Xpp difference","opportunity":"1 sentence on how to exploit","confidence":"High/Medium/Low","kalshiTitle":"...","polyTitle":"..."}]
+
+KALSHI MARKETS:
+${kSummary}
+
+POLYMARKET MARKETS:
+${pSummary}
+
+Raw JSON array only.`;
+
+      const raw = await callClaude(apiKey, sys, usr, 2000);
+      const match = raw.replace(/\`\`\`json|\`\`\`/g, '').trim().match(/\[[\s\S]*\]/);
+      if (!match) throw new Error("Could not analyze markets. Try again.");
+      const results = JSON.parse(match[0]);
+      
+      // Attach URLs
+      const withUrls = results.map(r => ({
+        ...r,
+        kalshiUrl: kalshiMarkets.find(m => m.title.toLowerCase().includes(r.kalshiTitle?.toLowerCase().slice(0,15)))?.url || '',
+        polyUrl: polyMarkets.find(m => m.title.toLowerCase().includes(r.polyTitle?.toLowerCase().slice(0,15)))?.url || '',
+      }));
+      
+      setArbData(withUrls);
+    } catch(e) { setArbErr(e.message || "Unknown error."); }
+    setArbBusy(false);
+  };
 
   const runScout = async () => {
     setScoutBusy(true); setScoutData(null); setScoutErr("");
