@@ -721,48 +721,34 @@ Exactly 4 items. Raw JSON array only.${notes ? " Live data: " + notes : ""}`;
                 )}
 
                 {scoutData && (
-                  <div style={{ display:"flex", flexDirection:"column", gap:"2rem" }}>
-                    {HORIZONS.map(h => (
-                      <div key={h.key} className="fin">
-                        <div style={{ display:"flex", alignItems:"center", gap:".75rem", marginBottom:".85rem", paddingBottom:".6rem", borderBottom:"1px solid "+h.color+"25" }}>
-                          <span style={{ fontSize:"1.1rem" }}>{h.icon}</span>
-                          <div>
-                            <div style={{ ...S.C, fontSize:".66rem", color:h.color, letterSpacing:".12em" }}>{h.label}</div>
-                            <div style={{ ...S.R, fontSize:".78rem", color:"#444" }}>{h.desc}</div>
-                          </div>
-                          <div style={{ marginLeft:"auto", background:h.color+"15", border:"1px solid "+h.color+"40", borderRadius:"3px", padding:"2px 10px" }}>
-                            <span style={{ ...S.C, fontSize:".48rem", color:h.color }}>{h.badge}</span>
-                          </div>
-                        </div>
-                        <div style={{ display:"flex", flexDirection:"column", gap:".6rem" }}>
-                          {(scoutData[h.key]||[]).map((m,i) => {
-                            const cc=CAT_COLORS[m.category]||"#888"; const saved=isSaved(m);
-                            return (
-                              <div key={i} className="card fin" onClick={() => pickMarket(m)} style={{ padding:"1rem", cursor:"pointer" }}>
-                                <div style={{ display:"flex", justifyContent:"space-between", gap:".75rem", alignItems:"flex-start" }}>
-                                  <div style={{ flex:1 }}>
-                                    <div style={{ display:"flex", gap:".4rem", marginBottom:".3rem", flexWrap:"wrap", alignItems:"center" }}>
-                                      <Tag color={cc}>{(m.category||"OTHER").toUpperCase()}</Tag>
-                                      {m.currentOdds && <span style={{ background:"#111", color:"#666", borderRadius:"3px", padding:"1px 7px", fontFamily:"'Cinzel',serif", fontSize:".5rem" }}>{m.currentOdds}</span>}
-                                      {m.closes && <span style={{ color:h.color, fontFamily:"'Crimson Text',serif", fontSize:".78rem", opacity:.8 }}>closes {m.closes}</span>}
-                                    </div>
-                                    <div style={{ ...S.C, fontSize:".76rem", color:"#e0e0e0", marginBottom:".2rem" }}>{m.title}</div>
-                                    <div style={{ ...S.R, fontSize:".84rem", color:"#666", fontStyle:"italic", marginBottom:m.whyInteresting?".2rem":0 }}>{m.question}</div>
-                                    {m.whyInteresting && <div style={{ ...S.R, fontSize:".78rem", color:"#555" }}>{m.whyInteresting}</div>}
-                                  </div>
-                                  <div style={{ display:"flex", flexDirection:"column", gap:".35rem", flexShrink:0, alignSelf:"center" }}>
-                                    <div style={{ background:h.color, color:"#000", padding:".35rem .85rem", borderRadius:"4px", fontFamily:"'Cinzel',serif", fontSize:".56rem", fontWeight:"bold", textAlign:"center" }}>ANALYZE</div>
-                                    <div onClick={e => { e.stopPropagation(); saved?unsaveMarket(m.title):saveMarket(m); }} style={{ background:saved?"#D4AF3715":"transparent", border:"1px solid "+(saved?"#D4AF37":"#2a2a3a"), color:saved?"#D4AF37":"#444", padding:".28rem .85rem", borderRadius:"4px", fontFamily:"'Cinzel',serif", fontSize:".5rem", cursor:"pointer", textAlign:"center" }}>
-                                      {saved?"🔖 SAVED":"🔖 SAVE"}
-                                    </div>
-                                  </div>
-                                </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:".6rem" }} className="fin">
+                    {(Array.isArray(scoutData) ? scoutData : []).map((m, i) => {
+                      const h = HORIZONS.find(x => x.key === horizon) || HORIZONS[1];
+                      const cc = CAT_COLORS[m.category] || "#888";
+                      const saved = isSaved(m);
+                      return (
+                        <div key={i} className="card fin" onClick={() => pickMarket(m)} style={{ padding:"1rem", cursor:"pointer" }}>
+                          <div style={{ display:"flex", justifyContent:"space-between", gap:".75rem", alignItems:"flex-start" }}>
+                            <div style={{ flex:1 }}>
+                              <div style={{ display:"flex", gap:".4rem", marginBottom:".3rem", flexWrap:"wrap", alignItems:"center" }}>
+                                <Tag color={cc}>{(m.category||"OTHER").toUpperCase()}</Tag>
+                                {m.currentOdds && <span style={{ background:"#111", color:"#666", borderRadius:"3px", padding:"1px 7px", fontFamily:"'Cinzel',serif", fontSize:".5rem" }}>{m.currentOdds}</span>}
+                                {m.closes && <span style={{ color:h.color, fontFamily:"'Crimson Text',serif", fontSize:".78rem", opacity:.8 }}>closes {m.closes}</span>}
                               </div>
-                            );
-                          })}
+                              <div style={{ ...S.C, fontSize:".76rem", color:"#e0e0e0", marginBottom:".2rem" }}>{m.title}</div>
+                              <div style={{ ...S.R, fontSize:".84rem", color:"#666", fontStyle:"italic", marginBottom:m.whyInteresting?".2rem":0 }}>{m.question}</div>
+                              {m.whyInteresting && <div style={{ ...S.R, fontSize:".78rem", color:"#555" }}>{m.whyInteresting}</div>}
+                            </div>
+                            <div style={{ display:"flex", flexDirection:"column", gap:".35rem", flexShrink:0, alignSelf:"center" }}>
+                              <div style={{ background:h.color, color:"#000", padding:".35rem .85rem", borderRadius:"4px", fontFamily:"'Cinzel',serif", fontSize:".56rem", fontWeight:"bold", textAlign:"center" }}>ANALYZE</div>
+                              <div onClick={e => { e.stopPropagation(); saved?unsaveMarket(m.title):saveMarket(m); }} style={{ background:saved?"#D4AF3715":"transparent", border:"1px solid "+(saved?"#D4AF37":"#2a2a3a"), color:saved?"#D4AF37":"#444", padding:".28rem .85rem", borderRadius:"4px", fontFamily:"'Cinzel',serif", fontSize:".5rem", cursor:"pointer", textAlign:"center" }}>
+                                {saved?"🔖 SAVED":"🔖 SAVE"}
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 
