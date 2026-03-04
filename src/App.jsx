@@ -372,11 +372,10 @@ function OracleApp({ apiKey, onClearKey }) {
           .sort(() => Math.random() - 0.5)
           .slice(0, 30)
           .map(m => `- ${m.title} | YES: ${m.yes_bid}¢ | closes: ${m.close_time?.slice(0,10)} | ticker: ${m.ticker}`)
-          .join("
-");
+          .join("\n");
 
         prompt = `Today: ${ts}. Pick 4 markets from this list that best match: ${rc.instruction} ${catF}
-For each return: {"title":"...","question":"Will X?","category":"Crypto","currentOdds":"YES at ${"{"}yes_bid{"}"}%","closes":"date","whyInteresting":"1 sentence.","councilPrompt":"Kalshi: title? YES X%. YES or NO bet.","ticker":"..."}
+For each return JSON with fields: title, question, category, currentOdds (use exact yes_bid value as percent), closes, whyInteresting, councilPrompt, ticker.
 Raw JSON array only. Use EXACT yes_bid values as odds. Markets:
 ${sample}`;
       } else {
