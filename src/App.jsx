@@ -30,7 +30,7 @@ const ADVISOR_COLORS = ["#FF4444","#4488FF","#D4AF37","#FF8C42","#CC44FF","#00C8
 const ADVISOR_EMOJIS = ["🧠","🦁","🐍","🎯","⚡","🌊","🔮","🃏","🦊","🐉","🌙","☄️","🎲","🧬","🏺","🗡️","🦅","🌀","🔱","💎"];
 
 const PHASES    = { IDLE:"idle", SEARCHING:"searching", PREDICTING:"predicting", ARGUING:"arguing", VOTING:"voting", RESULT:"result" };
-const MAIN_TABS = { SCOUT:"scout", COUNCIL:"council", HISTORY:"history", ROSTER:"roster", LEADERBOARD:"leaderboard", ARBITRAGE:"arbitrage" };
+const MAIN_TABS = { SCOUT:"scout", COUNCIL:"council", HISTORY:"history", ROSTER:"roster", LEADERBOARD:"leaderboard", ARBITRAGE:"arbitrage", ABOUT:"about" };
 
 // ── LOCAL STORAGE HELPERS ─────────────────────────────────────────────────────
 // Replaces window.storage (Claude artifact API) with standard localStorage
@@ -715,6 +715,7 @@ Raw JSON array only.`;
               [MAIN_TABS.ROSTER,      "🧬 ROSTER"                       ],
               [MAIN_TABS.LEADERBOARD, "🏆 LEADERBOARD"                  ],
               [MAIN_TABS.ARBITRAGE,   "⚡ ARB"                           ],
+              [MAIN_TABS.ABOUT,       "ℹ️ ABOUT"                         ],
             ].map(([k,l]) => (
               <button key={k} onClick={() => setTab(k)} style={{ ...S.C, fontSize:".56rem", letterSpacing:".1em", padding:".35rem .8rem", borderRadius:"4px", background:tab===k?"#D4AF37":"transparent", color:tab===k?"#000":"#555", border:tab===k?"none":"1px solid #1e1e28", cursor:"pointer" }}>{l}</button>
             ))}
@@ -1290,6 +1291,40 @@ Raw JSON array only.`;
                 <div style={{ ...S.R, color:"#444", fontStyle:"italic" }}>Click "Scan Now" to find arbitrage opportunities.</div>
               </div>
             )}
+          </div>
+        )}
+
+        {tab===MAIN_TABS.ABOUT && (
+          <div style={{ maxWidth:"680px", margin:"0 auto" }}>
+            <div style={{ textAlign:"center", marginBottom:"2.5rem" }}>
+              <div style={{ ...S.C, fontSize:"2rem", color:"#D4AF37", letterSpacing:".15em", marginBottom:".25rem" }}>ORACLE</div>
+              <div style={{ ...S.R, color:"#555", fontStyle:"italic", fontSize:"1rem" }}>Live data. Five minds. One verdict.</div>
+            </div>
+
+            {[
+              { icon:"🎯", title:"WHAT IS ORACLE?", body:"Oracle is an AI-powered prediction market research tool. It pulls live markets from Kalshi and Polymarket, assembles a council of five AI advisors with distinct personalities, and produces a structured YES/NO verdict with a specific bet recommendation." },
+              { icon:"⚖️", title:"THE COUNCIL", body:"Five advisors analyze every question independently: The Contrarian (challenges consensus), The Statistician (data-driven), The Gut (instinct-based), The Devil (worst-case scenarios), and The Pragmatist (practical outcomes). Each forms a prediction, then votes for the strongest analysis." },
+              { icon:"🎯", title:"MARKET SCOUT", body:"Scout pulls real open markets directly from Kalshi's API with live odds. Filter by timeframe — Ultra-Short (48hrs), Short (2 weeks), Medium (1-3 months), or Long (3+ months). Save markets to revisit, or send them straight to the Council." },
+              { icon:"⚡", title:"ARBITRAGE SCANNER", body:"The ARB tab scans Kalshi and Polymarket simultaneously for mispricings — either the same event priced differently across platforms, or related markets with logically inconsistent odds. Claude identifies and ranks the top opportunities." },
+              { icon:"🧬", title:"CUSTOM ADVISORS", body:"Build your own AI advisor in the Roster tab. Define their personality, reasoning style, and name. Activate them to replace the Pragmatist in council sessions. Your advisor earns you points when it wins the vote — saved to Supabase so it persists across devices." },
+              { icon:"🏆", title:"LEADERBOARD", body:"A global shared leaderboard tracks points across all users. Earn points by saving bets and marking outcomes — 5 points for a WIN, 1 for a LOSS. The leaderboard shows your advisor's name and emoji so others can see who's competing." },
+              { icon:"📋", title:"BET TRACKING", body:"Every council verdict can be saved to your History. Mark bets WIN or LOSS as outcomes resolve. All results sync to Supabase so your record persists. A full bet log including which advisor won is available in the database." },
+              { icon:"⚠️", title:"DISCLAIMER", body:"Oracle is a research and analysis tool. It does not guarantee profitable outcomes. Prediction markets involve real financial risk. Always do your own research before placing bets." },
+            ].map((s, i) => (
+              <div key={i} className="fin" style={{ marginBottom:"1.25rem", padding:"1.25rem" }}>
+                <div style={{ display:"flex", gap:".75rem", alignItems:"flex-start" }}>
+                  <span style={{ fontSize:"1.1rem", flexShrink:0, marginTop:".1rem" }}>{s.icon}</span>
+                  <div>
+                    <div style={{ ...S.C, fontSize:".6rem", color:"#D4AF37", letterSpacing:".12em", marginBottom:".35rem" }}>{s.title}</div>
+                    <div style={{ ...S.R, color:"#888", fontSize:".88rem", lineHeight:"1.6" }}>{s.body}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <div style={{ textAlign:"center", marginTop:"2rem", paddingTop:"1.5rem", borderTop:"1px solid #1a1a25" }}>
+              <div style={{ ...S.R, color:"#333", fontSize:".78rem", fontStyle:"italic" }}>Built with Claude · Kalshi API · Polymarket API · Supabase</div>
+            </div>
           </div>
         )}
         {tab===MAIN_TABS.LEADERBOARD && (
