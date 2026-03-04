@@ -350,7 +350,7 @@ function OracleApp({ apiKey, onClearKey }) {
         const sample = kalshiMarkets
           .sort(() => Math.random() - 0.5)
           .slice(0, 30)
-          .map(m => `- ${m.title} | YES: ${m.yes_bid}¢ | closes: ${m.close_time?.slice(0,10)} | ticker: ${m.ticker}`)
+          .map(m => `- ${m.title} | YES at ${m.yes_bid}% | closes: ${new Date(m.close_time).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})} | ticker: ${m.ticker}`)
           .join("\n");
 
         prompt = `Today: ${ts}. Pick 4 markets from this list that best match: ${rc.instruction} ${catF}
