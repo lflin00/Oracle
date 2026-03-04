@@ -386,9 +386,7 @@ function OracleApp({ apiKey, onClearKey }) {
 
       // Ask Claude to find arbitrage opportunities
       const kSummary = kalshiMarkets.map(m => `[Kalshi] ${m.title}: YES ${m.odds}%`).join('\n');
-');
       const pSummary = polyMarkets.map(m => `[Polymarket] ${m.title}: YES ${m.odds}%`).join('\n');
-');
 
       const sys = "You are an arbitrage analyst for prediction markets. Find markets that appear to cover the same event but have different odds across platforms, OR find logical inconsistencies within a single platform. JSON only.";
       const usr = `Find the top 5 arbitrage or mispricing opportunities from these markets.
