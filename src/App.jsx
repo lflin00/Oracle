@@ -100,6 +100,27 @@ async function sbDeleteAdvisor(id) {
   });
 }
 
+async function sbSaveBet(username, bet) {
+  await fetch(SUPABASE_URL + "/rest/v1/bets", {
+    method: "POST",
+    headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates" },
+    body: JSON.stringify({
+      id: bet.id, username: username||"anonymous", question: bet.question,
+      winner_advisor: bet.winner, winner_emoji: bet.emoji, prediction: bet.prediction,
+      bet: bet.bet, votes: bet.votes||0, is_custom_win: bet.isCustomWin||false,
+      outcome: bet.outcome||null, date: bet.date
+    })
+  });
+}
+
+async function sbUpdateBetOutcome(id, outcome) {
+  await fetch(SUPABASE_URL + "/rest/v1/bets?id=eq." + encodeURIComponent(id), {
+    method: "PATCH",
+    headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ outcome })
+  });
+}
+
 // ── API ───────────────────────────────────────────────────────────────────────
 
 // apiKey is passed in from state so every call uses the current key.
