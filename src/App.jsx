@@ -204,7 +204,7 @@ function ApiKeyScreen({ onSubmit }) {
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap'); *{box-sizing:border-box;margin:0;padding:0} input{background:#0f0f14;border:1px solid #2a2a3a;color:#ddd;font-family:'Crimson Text',serif;font-size:1rem;outline:none;width:100%;border-radius:6px;padding:.8rem 1rem;transition:border-color .2s} input:focus{border-color:#D4AF37}`}</style>
       <div style={{ maxWidth:"440px", width:"100%", textAlign:"center" }}>
         <div style={{ ...S.C, fontSize:"2.5rem", fontWeight:900, letterSpacing:".15em", color:"#D4AF37", marginBottom:".25rem" }}>ORACLE</div>
-        <div style={{ ...S.R, color:"#444", fontStyle:"italic", marginBottom:"2.5rem" }}>Live data. Seven minds. One verdict.</div>
+        <div style={{ ...S.R, color:"#444", fontStyle:"italic", marginBottom:"2.5rem" }}>Live data. Five minds. One verdict.</div>
 
         <div style={{ background:"#0a0a0f", border:"1px solid #1e1e28", borderRadius:"12px", padding:"2rem", textAlign:"left" }}>
           <div style={{ ...S.C, fontSize:".6rem", color:"#D4AF37", letterSpacing:".2em", marginBottom:"1.25rem" }}>ENTER YOUR API KEY</div>
@@ -687,7 +687,7 @@ Raw JSON array only.`;
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:".75rem", flexWrap:"wrap", gap:".5rem" }}>
             <div>
               <div style={{ ...S.C, fontSize:"1.8rem", fontWeight:900, letterSpacing:".12em", color:"#D4AF37", lineHeight:1 }}>ORACLE</div>
-              <div style={{ ...S.R, color:"#444", fontStyle:"italic", fontSize:".85rem" }}>Live data. Seven minds. One verdict.</div>
+              <div style={{ ...S.R, color:"#444", fontStyle:"italic", fontSize:".85rem" }}>Live data. Five minds. One verdict.</div>
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:".75rem" }}>
               {activeAdv && (
