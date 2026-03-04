@@ -521,17 +521,18 @@ Raw JSON array only.`;
     log({ type:"phase", text:"📋 PHASE 1 — PREDICTIONS (parallel)" });
     log({ type:"thinking", text:"All 7 advisors forming predictions simultaneously..." });
 
-    const predPromises = COUNCIL.map(async (a) => {
-      const sys = "You are "+a.name+" on the Oracle council. Personality: "+a.trait+"\n\nUse live data. Give a SPECIFIC BINARY bet: YES or NO with exact numbers and dates.\nGood: \"YES — Bitcoin closes above $95,000 by March 31 2026\"\nBad: \"YES — Bitcoin goes up\"\nJSON only, no markdown: {\"prediction\":\"one sentence\",\"bet\":\"YES/NO — specific claim with numbers/dates\",\"confidence\":70,\"reasoning\":\"2-3 sentences in character\"}";
-      const raw = await callClaude(apiKey, sys, "Question: \""+q+"\"\n\nLIVE DATA:\n"+ctx, 600);
+    const predictions = [];
+    for (let i = 0; i < COUNCIL.length; i++) {
+      const a = COUNCIL[i]; setActiveIdx(i);
+      log({ type:"thinking", text:a.name+" is forming a prediction..." });
+      const sys = "You are "+a.name+". Personality: "+a.trait+"\nJSON only: {\"prediction\":\"one sentence\",\"bet\":\"YES/NO — specific claim with numbers/dates\",\"confidence\":70,\"reasoning\":\"2 sentences\"}";
+      const raw = await callClaude(apiKey, sys, "Question: \""+q+"\"\n\nLIVE DATA:\n"+ctx, 400);
       const p = parseJ(raw) || { prediction:"Analysis inconclusive.", bet:"NO — insufficient data", confidence:50, reasoning:"Could not analyze." };
-      return { ...p, id:a.id };
-    });
-
-    const predResults = await Promise.allSettled(predPromises);
-    const predictions = predResults.map((r, i) =>
-      r.status === "fulfilled" ? r.value : { prediction:"Analysis inconclusive.", bet:"NO — insufficient data", confidence:50, reasoning:"Could not analyze.", id:i }
-    );
+      predictions.push({ ...p, id:a.id });
+      log({ type:"pred", id:a.id, ...p });
+      await new Promise(r => setTimeout(r, 12000));
+    }
+    setActiveIdx(-1);
 
     // Log all predictions in order
     predictions.forEach(p => log({ type:"pred", id:p.id, ...p }));
