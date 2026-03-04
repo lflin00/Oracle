@@ -122,28 +122,7 @@ function parseJ(text) {
 
 // ── KALSHI API ────────────────────────────────────────────────────────────────
 async function fetchKalshiMarkets(horizonKey) {
-  const base = "https://api.elections.kalshi.com/trade-api/v2";
-  const now = new Date();
-  const params = new URLSearchParams({ status: "open", limit: "100" });
-
-  // Set close time filter based on horizon
-  if (horizonKey === "ultrashort") {
-    const d = new Date(now); d.setHours(now.getHours() + 48);
-    params.append("max_close_ts", Math.floor(d.getTime()/1000));
-  } else if (horizonKey === "short") {
-    const d = new Date(now); d.setDate(now.getDate() + 14);
-    params.append("max_close_ts", Math.floor(d.getTime()/1000));
-  } else if (horizonKey === "medium") {
-    const d = new Date(now); d.setMonth(now.getMonth() + 3);
-    params.append("max_close_ts", Math.floor(d.getTime()/1000));
-    const d2 = new Date(now); d2.setDate(now.getDate() + 14);
-    params.append("min_close_ts", Math.floor(d2.getTime()/1000));
-  } else {
-    const d = new Date(now); d.setMonth(now.getMonth() + 3);
-    params.append("min_close_ts", Math.floor(d.getTime()/1000));
-  }
-
-  const res = await fetch(base + "/markets?" + params.toString());
+  const res = await fetch("/api/kalshi?horizon=" + horizonKey);
   const data = await res.json();
   return (data.markets || []).filter(m => m.yes_bid > 0);
 }
