@@ -385,9 +385,9 @@ function OracleApp({ apiKey, onClearKey }) {
       if (!kalshiMarkets.length && !polyMarkets.length) throw new Error("Could not fetch market data. Try again.");
 
       // Ask Claude to find arbitrage opportunities
-      const kSummary = kalshiMarkets.map(m => `[Kalshi] ${m.title}: YES ${m.odds}%`).join('
+      const kSummary = kalshiMarkets.map(m => `[Kalshi] ${m.title}: YES ${m.odds}%`).join('\n');
 ');
-      const pSummary = polyMarkets.map(m => `[Polymarket] ${m.title}: YES ${m.odds}%`).join('
+      const pSummary = polyMarkets.map(m => `[Polymarket] ${m.title}: YES ${m.odds}%`).join('\n');
 ');
 
       const sys = "You are an arbitrage analyst for prediction markets. Find markets that appear to cover the same event but have different odds across platforms, OR find logical inconsistencies within a single platform. JSON only.";
