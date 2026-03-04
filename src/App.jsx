@@ -119,6 +119,35 @@ function parseJ(text) {
   return null;
 }
 
+
+// ── KALSHI API ────────────────────────────────────────────────────────────────
+async function fetchKalshiMarkets(horizonKey) {
+  const base = "https://api.elections.kalshi.com/trade-api/v2";
+  const now = new Date();
+  const params = new URLSearchParams({ status: "open", limit: "100" });
+
+  // Set close time filter based on horizon
+  if (horizonKey === "ultrashort") {
+    const d = new Date(now); d.setHours(now.getHours() + 48);
+    params.append("max_close_ts", Math.floor(d.getTime()/1000));
+  } else if (horizonKey === "short") {
+    const d = new Date(now); d.setDate(now.getDate() + 14);
+    params.append("max_close_ts", Math.floor(d.getTime()/1000));
+  } else if (horizonKey === "medium") {
+    const d = new Date(now); d.setMonth(now.getMonth() + 3);
+    params.append("max_close_ts", Math.floor(d.getTime()/1000));
+    const d2 = new Date(now); d2.setDate(now.getDate() + 14);
+    params.append("min_close_ts", Math.floor(d2.getTime()/1000));
+  } else {
+    const d = new Date(now); d.setMonth(now.getMonth() + 3);
+    params.append("min_close_ts", Math.floor(d.getTime()/1000));
+  }
+
+  const res = await fetch(base + "/markets?" + params.toString());
+  const data = await res.json();
+  return (data.markets || []).filter(m => m.yes_bid > 0);
+}
+
 function fmtDate(d) {
   return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 }
@@ -326,34 +355,50 @@ function OracleApp({ apiKey, onClearKey }) {
     const ts = fmtDate(today);
     const rc = RISK_CONFIGS[riskLevel];
     const h = HORIZONS.find(x => x.key === horizon) || HORIZONS[1];
-    const catF = categories.length > 0 ? "Categories only: " + categories.join(", ") + "." : "Include diverse categories.";
-    const cust = scoutPrompt.trim() ? "Extra: " + scoutPrompt.trim() : "";
+    const catF = categories.length > 0 ? "Categories only: " + categories.join(", ") + "." : "";
     try {
-      let notes = "";
-      if (liveSearch) {
-        setScoutStep("Searching live markets...");
-        try {
-          notes = await callClaudeSearch(
-            "Find open Kalshi prediction markets. Bullet points only, no JSON.",
-            "Today is " + ts + ". Find Kalshi markets closing " + h.closes + ". " + rc.instruction + " " + catF
-          );
-        } catch (_) {}
+      setScoutStep("Fetching live Kalshi markets...");
+      let kalshiMarkets = [];
+      try {
+        kalshiMarkets = await fetchKalshiMarkets(horizon);
+      } catch (_) {}
+
+      setScoutStep("Selecting best markets...");
+
+      let prompt = "";
+      if (kalshiMarkets.length > 0) {
+        // Use real Kalshi data
+        const sample = kalshiMarkets
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 30)
+          .map(m => `- ${m.title} | YES: ${m.yes_bid}¢ | closes: ${m.close_time?.slice(0,10)} | ticker: ${m.ticker}`)
+          .join("
+");
+
+        prompt = `Today: ${ts}. Pick 4 markets from this list that best match: ${rc.instruction} ${catF}
+For each return: {"title":"...","question":"Will X?","category":"Crypto","currentOdds":"YES at ${"{"}yes_bid{"}"}%","closes":"date","whyInteresting":"1 sentence.","councilPrompt":"Kalshi: title? YES X%. YES or NO bet.","ticker":"..."}
+Raw JSON array only. Use EXACT yes_bid values as odds. Markets:
+${sample}`;
+      } else {
+        // Fallback: generate without real data
+        prompt = `Today: ${ts}. Generate 4 Kalshi prediction markets closing ${h.closes}. ${rc.instruction} ${catF}
+Return: [{"title":"max 8 words","question":"Will X?","category":"Crypto","currentOdds":"YES at 55%","closes":"specific date","whyInteresting":"1 sentence.","councilPrompt":"Kalshi: Will X? YES 55%. YES or NO bet."}]
+Raw JSON array only.`;
       }
-      setScoutStep("Generating markets...");
-      const jSys = "JSON API. Output raw valid JSON array only. No markdown, no prose.";
-      const jUsr = `Today: ${ts}. Generate 4 Kalshi prediction markets closing ${h.closes}. ${rc.instruction} ${catF} ${cust}
-Return a JSON array: [{"title":"max 8 words","question":"Will X?","category":"Crypto","currentOdds":"YES at 55%","closes":"specific date","whyInteresting":"1 sentence.","councilPrompt":"Kalshi: Will X? YES 55%. YES or NO bet with numbers and date."}]
-Exactly 4 items. Raw JSON array only.${notes ? " Live data: " + notes : ""}`;
-      const raw = await callClaude(apiKey, jSys, jUsr, 2000);
+
+      const jSys = "JSON API. Output raw valid JSON array only. No markdown.";
+      const raw = await callClaude(apiKey, jSys, prompt, 1500);
       const match = raw.replace(/```json|```/g, "").trim().match(/\[[\s\S]*\]/);
       if (!match) throw new Error("Could not generate markets. Try again.");
       const arr = JSON.parse(match[0]);
       if (!arr.length) throw new Error("Could not generate markets. Try again.");
-      const norm = (m, i) => ({ title: m.title||"Market "+(i+1), question: m.question||"", category: m.category||"Other", currentOdds: m.currentOdds||"YES at 50%", closes: m.closes||"TBD", whyInteresting: m.whyInteresting||"", councilPrompt: m.councilPrompt||("Kalshi: " + m.title + ". " + m.currentOdds + ". Closes " + m.closes + ". YES/NO bet.") });
+      const norm = (m, i) => ({ title: m.title||"Market "+(i+1), question: m.question||"", category: m.category||"Other", currentOdds: m.currentOdds||"YES at 50%", closes: m.closes||"TBD", whyInteresting: m.whyInteresting||"", councilPrompt: m.councilPrompt||("Kalshi: " + m.title + ". " + m.currentOdds + ". YES/NO bet."), ticker: m.ticker||"" });
       setScoutData(arr.slice(0, 4).map(norm));
     } catch (e) { setScoutErr(e.message || "Unknown error. Try again."); }
     setScoutStep(""); setScoutBusy(false);
   };
+
+
 
   const pickMarket = (m) => { setQuestion(m.councilPrompt); resetCouncil(); setTab(MAIN_TABS.COUNCIL); };
 
