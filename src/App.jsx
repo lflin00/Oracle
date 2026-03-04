@@ -684,7 +684,12 @@ Raw JSON array only.`;
                             <div style={{ flex:1 }}>
                               <div style={{ display:"flex", gap:".4rem", marginBottom:".3rem", flexWrap:"wrap", alignItems:"center" }}>
                                 <Tag color={cc}>{(m.category||"OTHER").toUpperCase()}</Tag>
-                                {m.currentOdds && <span style={{ background:"#111", color:"#666", borderRadius:"3px", padding:"1px 7px", fontFamily:"'Cinzel',serif", fontSize:".5rem" }}>{m.currentOdds}</span>}
+                                {m.currentOdds && (() => {
+                                  const pct = parseInt(m.currentOdds);
+                                  const color = pct >= 65 ? "#00C896" : pct >= 40 ? "#D4AF37" : "#FF4444";
+                                  const label = isNaN(pct) ? m.currentOdds : (pct + "% YES");
+                                  return <span style={{ background:color+"20", border:"1px solid "+color+"60", color, borderRadius:"4px", padding:"2px 9px", fontFamily:"'Cinzel',serif", fontSize:".54rem", fontWeight:"bold", letterSpacing:".04em" }}>{label}</span>;
+                                })()}
                                 <span style={{ color:hz.color, fontFamily:"'Crimson Text',serif", fontSize:".78rem", opacity:.8 }}>closes {m.closes}</span>
                               </div>
                               <div style={{ ...S.C, fontSize:".76rem", color:"#e0e0e0", marginBottom:".15rem" }}>{m.title}</div>
@@ -780,7 +785,12 @@ Raw JSON array only.`;
                             <div style={{ flex:1 }}>
                               <div style={{ display:"flex", gap:".4rem", marginBottom:".3rem", flexWrap:"wrap", alignItems:"center" }}>
                                 <Tag color={cc}>{(m.category||"OTHER").toUpperCase()}</Tag>
-                                {m.currentOdds && <span style={{ background:"#111", color:"#666", borderRadius:"3px", padding:"1px 7px", fontFamily:"'Cinzel',serif", fontSize:".5rem" }}>{m.currentOdds}</span>}
+                                {m.currentOdds && (() => {
+                                  const pct = parseInt(m.currentOdds);
+                                  const color = pct >= 65 ? "#00C896" : pct >= 40 ? "#D4AF37" : "#FF4444";
+                                  const label = isNaN(pct) ? m.currentOdds : (pct + "% YES");
+                                  return <span style={{ background:color+"20", border:"1px solid "+color+"60", color, borderRadius:"4px", padding:"2px 9px", fontFamily:"'Cinzel',serif", fontSize:".54rem", fontWeight:"bold", letterSpacing:".04em" }}>{label}</span>;
+                                })()}
                                 {m.closes && <span style={{ color:h.color, fontFamily:"'Crimson Text',serif", fontSize:".78rem", opacity:.8 }}>closes {m.closes}</span>}
                               </div>
                               <div style={{ ...S.C, fontSize:".76rem", color:"#e0e0e0", marginBottom:".2rem" }}>{m.title}</div>
