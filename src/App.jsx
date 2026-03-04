@@ -515,11 +515,11 @@ Raw JSON array only.`;
     log({ type:"briefing", text:ctx });
 
     // ── Phase 1: PARALLEL predictions ────────────────────────────────────────
-    // All 7 advisors predict simultaneously — cuts this phase from ~50s to ~10s
+    // Phase 1: Sequential predictions
     setPhase(PHASES.PREDICTING); setPhaseLbl("Council deliberating...");
     setActiveIdx("all"); // signal all advisors are active
-    log({ type:"phase", text:"📋 PHASE 1 — PREDICTIONS (parallel)" });
-    log({ type:"thinking", text:"All 7 advisors forming predictions simultaneously..." });
+    log({ type:"phase", text:"📋 PHASE 1 — PREDICTIONS" });
+    
 
     const predictions = [];
     for (let i = 0; i < COUNCIL.length; i++) {
