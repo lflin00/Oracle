@@ -293,6 +293,7 @@ function OracleApp({ apiKey, onClearKey }) {
   // Council
   const [phase,     setPhase]     = useState(PHASES.IDLE);
   const [question,  setQuestion]  = useState("");
+  const [currentTicker, setCurrentTicker] = useState("");
   const [dialogue,  setDialogue]  = useState([]);
   const [preds,     setPreds]     = useState([]);
   const [winner,    setWinner]    = useState(null);
@@ -364,6 +365,7 @@ function OracleApp({ apiKey, onClearKey }) {
   }, [username, customAdvisors, activeCustomId, history]);
 
   useEffect(() => { if (tab === MAIN_TABS.LEADERBOARD) loadLeaderboard(); }, [tab, loadLeaderboard]);
+  useEffect(() => { if (tab === MAIN_TABS.HISTORY) autoResolveBets(); }, [tab]);
 
   // ── COUNCIL CONSTRUCTION ─────────────────────────────────────────────────────
   const getCouncil = () => {
@@ -491,7 +493,7 @@ Raw JSON array only.`;
 
 
 
-  const pickMarket = (m) => { setQuestion(m.councilPrompt); resetCouncil(); setTab(MAIN_TABS.COUNCIL); };
+  const pickMarket = (m) => { setQuestion(m.councilPrompt); setCurrentTicker(m.ticker||""); resetCouncil(); setTab(MAIN_TABS.COUNCIL); };
 
   // ── COUNCIL ───────────────────────────────────────────────────────────────────
   const resetCouncil = () => { setPhase(PHASES.IDLE); setDialogue([]); setPreds([]); setWinner(null); setActiveIdx(-1); setCTab("debate"); };
@@ -587,6 +589,22 @@ Raw JSON array only.`;
     setHistory(h => [{ question, winner:winner.advisor.name, emoji:winner.advisor.emoji, prediction:winner.prediction, bet:winner.bet, votes:winner.votes, date:new Date().toLocaleDateString(), outcome:null, isCustomWin:winner.isCustomWin }, ...h]);
   };
 
+
+  const autoResolveBets = async () => {
+    const pending = history.filter(h => h.outcome === null && h.ticker);
+    if (!pending.length) return;
+    for (const bet of pending) {
+      try {
+        const res = await fetch('/api/kalshi?ticker=' + encodeURIComponent(bet.ticker));
+        const data = await res.json();
+        const market = (data.markets || [])[0];
+        if (!market || market.status !== 'settled') continue;
+        const outcome = market.result === 'yes' ? 'WIN' : 'LOSS';
+        const idx = history.findIndex(h => h.id === bet.id);
+        if (idx !== -1) resolveOutcome(idx, outcome);
+      } catch(_) {}
+    }
+  };
   const resolveOutcome = (i, newOutcome) => {
     const h2 = [...history];
     const prev = h2[i].outcome;
