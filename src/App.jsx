@@ -30,7 +30,7 @@ const ADVISOR_COLORS = ["#FF4444","#4488FF","#D4AF37","#FF8C42","#CC44FF","#00C8
 const ADVISOR_EMOJIS = ["🧠","🦁","🐍","🎯","⚡","🌊","🔮","🃏","🦊","🐉","🌙","☄️","🎲","🧬","🏺","🗡️","🦅","🌀","🔱","💎"];
 
 const PHASES    = { IDLE:"idle", SEARCHING:"searching", PREDICTING:"predicting", ARGUING:"arguing", VOTING:"voting", RESULT:"result" };
-const MAIN_TABS = { SCOUT:"scout", COUNCIL:"council", HISTORY:"history", ROSTER:"roster", LEADERBOARD:"leaderboard" };
+const MAIN_TABS = { SCOUT:"scout", COUNCIL:"council", HISTORY:"history", ROSTER:"roster", LEADERBOARD:"leaderboard", ARBITRAGE:"arbitrage" };
 
 // ── LOCAL STORAGE HELPERS ─────────────────────────────────────────────────────
 // Replaces window.storage (Claude artifact API) with standard localStorage
@@ -300,6 +300,9 @@ function OracleApp({ apiKey, onClearKey }) {
   const [username,  setUsername]  = useState(() => LS.get("oracle:username") || "");
   const [draftUser, setDraftUser] = useState("");
 
+  const [arbData, setArbData] = useState([]);
+  const [arbBusy, setArbBusy] = useState(false);
+  const [arbErr, setArbErr] = useState("");
   const [arbData, setArbData] = useState([]);
   const [arbBusy, setArbBusy] = useState(false);
   const [arbErr, setArbErr] = useState("");
@@ -709,6 +712,7 @@ Raw JSON array only.`;
               [MAIN_TABS.HISTORY,     "📋 HISTORY ("+history.length+")" ],
               [MAIN_TABS.ROSTER,      "🧬 ROSTER"                       ],
               [MAIN_TABS.LEADERBOARD, "🏆 LEADERBOARD"                  ],
+              [MAIN_TABS.ARBITRAGE,   "⚡ ARB"                           ],
             ].map(([k,l]) => (
               <button key={k} onClick={() => setTab(k)} style={{ ...S.C, fontSize:".56rem", letterSpacing:".1em", padding:".35rem .8rem", borderRadius:"4px", background:tab===k?"#D4AF37":"transparent", color:tab===k?"#000":"#555", border:tab===k?"none":"1px solid #1e1e28", cursor:"pointer" }}>{l}</button>
             ))}
