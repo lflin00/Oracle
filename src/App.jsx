@@ -510,11 +510,13 @@ Raw JSON array only.`;
     log({ type:"phase", text:"🔍 PHASE 0 — LIVE BRIEFING" });
     log({ type:"thinking", text:"Searching the web for current prices and news..." });
     let ctx = "No live data available.";
-    try {
-      const r = await callClaudeSearch(apiKey, "Find key facts. Reply in 3 bullet points max with specific numbers and dates.", "Today is "+fmtDate(new Date())+". Live data on: "+q);
-      if (r) ctx = r;
-    } catch (_) {}
-    ctx = ctx.slice(0, 800);
+    if (liveSearch) {
+      try {
+        const r = await callClaudeSearch(apiKey, "Find key facts. Reply in 3 bullet points max with specific numbers and dates.", "Today is "+fmtDate(new Date())+". Live data on: "+q);
+        if (r) ctx = r;
+      } catch (_) {}
+      ctx = ctx.slice(0, 800);
+    }
     log({ type:"briefing", text:ctx });
 
     // ── Phase 1: PARALLEL predictions ────────────────────────────────────────
