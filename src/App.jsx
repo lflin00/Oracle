@@ -533,7 +533,7 @@ Raw JSON array only.`;
       const p = parseJ(raw) || { prediction:"Analysis inconclusive.", bet:"NO — insufficient data", confidence:50, reasoning:"Could not analyze." };
       predictions.push({ ...p, id:a.id });
       log({ type:"pred", id:a.id, ...p });
-      await new Promise(r => setTimeout(r, 12000));
+      await new Promise(r => setTimeout(r, 3000));
     }
     setActiveIdx(-1);
 
