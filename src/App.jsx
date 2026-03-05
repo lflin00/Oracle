@@ -514,6 +514,7 @@ Raw JSON array only.`;
       const r = await callClaudeSearch(apiKey, "You are a market research briefer. Find current real-time data. Write concise bullet-point briefing with specific numbers, prices, names, dates from the past 7 days.", "Today is "+fmtDate(new Date())+". Live data on: "+q);
       if (r) ctx = r;
     } catch (_) {}
+    ctx = ctx.slice(0, 800);
     log({ type:"briefing", text:ctx });
 
     // ── Phase 1: PARALLEL predictions ────────────────────────────────────────
@@ -528,7 +529,7 @@ Raw JSON array only.`;
       const a = COUNCIL[i]; setActiveIdx(i);
       log({ type:"thinking", text:a.name+" is forming a prediction..." });
       const sys = "You are "+a.name+". Personality: "+a.trait+"\nJSON only: {\"prediction\":\"one sentence\",\"bet\":\"YES/NO — specific claim with numbers/dates\",\"confidence\":70,\"reasoning\":\"2 sentences\"}";
-      const raw = await callClaude(apiKey, sys, "Question: \""+q+"\"\n\nLIVE DATA:\n"+ctx, 400);
+      const raw = await callClaude(apiKey, sys, "Question: \""+q+"\"\n\nLIVE DATA:\n"+ctx.slice(0,500), 300);
       const p = parseJ(raw) || { prediction:"Analysis inconclusive.", bet:"NO — insufficient data", confidence:50, reasoning:"Could not analyze." };
       predictions.push({ ...p, id:a.id });
       log({ type:"pred", id:a.id, ...p });
