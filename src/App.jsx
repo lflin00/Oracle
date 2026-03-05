@@ -149,7 +149,7 @@ async function callClaudeSearch(apiKey, system, user) {
       "anthropic-version": "2023-06-01",
       "anthropic-dangerous-direct-browser-access": "true",
     },
-    body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 3000, tools: [{ type: "web_search_20250305", name: "web_search" }], system, messages: [{ role: "user", content: user }] }),
+    body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 500, tools: [{ type: "web_search_20250305", name: "web_search" }], system, messages: [{ role: "user", content: user }] }),
   });
   const d = await res.json();
   if (d.error) throw new Error(d.error.message);
@@ -511,7 +511,7 @@ Raw JSON array only.`;
     log({ type:"thinking", text:"Searching the web for current prices and news..." });
     let ctx = "No live data available.";
     try {
-      const r = await callClaudeSearch(apiKey, "You are a market research briefer. Find current real-time data. Write concise bullet-point briefing with specific numbers, prices, names, dates from the past 7 days.", "Today is "+fmtDate(new Date())+". Live data on: "+q);
+      const r = await callClaudeSearch(apiKey, "Find key facts. Reply in 3 bullet points max with specific numbers and dates.", "Today is "+fmtDate(new Date())+". Live data on: "+q);
       if (r) ctx = r;
     } catch (_) {}
     ctx = ctx.slice(0, 800);
