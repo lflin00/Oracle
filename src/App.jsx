@@ -3,11 +3,11 @@ import { useState, useRef, useEffect, useCallback } from "react";
 // ── CONSTANTS ─────────────────────────────────────────────────────────────────
 
 const DEFAULT_COUNCIL = [
-  { id: 0, name: "The Contrarian",   emoji: "⚔️",  color: "#FF4444", bg: "#1a0000", trait: "You bet against the crowd. If everyone thinks yes, you think no. Actively find why consensus is wrong.", shortTrait: "Against consensus" },
-  { id: 1, name: "The Statistician", emoji: "📊",  color: "#4488FF", bg: "#00091a", trait: "Pure data, base rates, historical probabilities. Strip away all narrative and emotion. Numbers only.", shortTrait: "Data & base rates" },
-  { id: 2, name: "The Gut",          emoji: "🔥",  color: "#FF8C42", bg: "#120800", trait: "Pure instinct and intuition. No charts, no data, no history. Feel the answer and trust it completely.", shortTrait: "Pure instinct" },
-  { id: 3, name: "The Devil",        emoji: "😈",  color: "#CC44FF", bg: "#0d0019", trait: "Hunt black swans, tail risks, overlooked chaos. What is everyone ignoring? What could go catastrophically wrong?", shortTrait: "Black swan hunter" },
-  { id: 4, name: "The Pragmatist",   emoji: "💼",  color: "#00C896", bg: "#000f0a", trait: "Follow incentives and money. Who benefits from each outcome? Reason backwards from cui bono.", shortTrait: "Follows incentives" },
+  { id: 0, name: "The Contrarian",   emoji: "⚔️",  color: "#FF4444", bg: "#1a0000", trait: "You specialize in finding why the market consensus is WRONG. If odds are above 60% YES, you look for reasons it fails. If below 40%, you look for why it succeeds. Examine: overconfidence bias, narrative drift, ignored base rates, and recency bias. Your job is to find the ONE reason everyone else is missing.", shortTrait: "Against consensus" },
+  { id: 1, name: "The Statistician", emoji: "📊",  color: "#4488FF", bg: "#00091a", trait: "You reason purely from base rates, historical frequencies, and market efficiency. Start from: how often do similar events resolve YES historically? Then adjust for current odds — if the market is at 65%, is that fair given the base rate? Apply Kelly criterion thinking. Cite specific probabilities and frequencies. Never speculate beyond what the numbers support.", shortTrait: "Data & base rates" },
+  { id: 2, name: "The Gut",          emoji: "🔥",  color: "#FF8C42", bg: "#120800", trait: "You reason from narrative momentum and human psychology. What story is the market telling? Which outcome FEELS inevitable given the current narrative? Trust the vibes — what are people talking about, what has momentum, what outcome would make a better story? Your instinct is calibrated by years of watching how these things play out.", shortTrait: "Narrative momentum" },
+  { id: 3, name: "The Devil",        emoji: "😈",  color: "#CC44FF", bg: "#0d0019", trait: "You hunt for the tail risk everyone is ignoring. What single unexpected event could flip this market? Think: regulatory surprises, technical failures, key person risk, weather, geopolitical shocks, liquidity crises. Assign a real probability to your black swan. If it's above 10%, it should change the bet. Be specific about the mechanism, not just vague about risk.", shortTrait: "Black swan hunter" },
+  { id: 4, name: "The Pragmatist",   emoji: "💼",  color: "#00C896", bg: "#000f0a", trait: "You follow money and incentives. Who controls the outcome? Who has financial incentive to make it resolve YES vs NO? Look at: who profits, who has insider knowledge, what do the smart money flows suggest, what would insiders do? Reason backwards from cui bono. The outcome that benefits the most powerful parties is usually the one that happens.", shortTrait: "Follows incentives" },
 ];
 
 const HORIZONS = [
@@ -512,7 +512,7 @@ Raw JSON array only.`;
     let ctx = "No live data available.";
     if (liveSearch) {
       try {
-        const r = await callClaudeSearch(apiKey, "Find key facts. Reply in 3 bullet points max with specific numbers and dates.", "Today is "+fmtDate(new Date())+". Live data on: "+q);
+        const r = await callClaudeSearch(apiKey, "You are a briefing analyst. Search ONCE for the most critical fact about this market. Return ONLY: current price/odds if relevant, one recent key development, and the single most important factor for resolution. Max 3 bullet points. Be specific with numbers.", "Today is "+fmtDate(new Date())+". Live data on: "+q);
         if (r) ctx = r;
       } catch (_) {}
       ctx = ctx.slice(0, 800);
@@ -530,8 +530,9 @@ Raw JSON array only.`;
     for (let i = 0; i < COUNCIL.length; i++) {
       const a = COUNCIL[i]; setActiveIdx(i);
       log({ type:"thinking", text:a.name+" is forming a prediction..." });
-      const sys = "You are "+a.name+". Personality: "+a.trait+"\nJSON only: {\"prediction\":\"one sentence\",\"bet\":\"YES/NO — specific claim with numbers/dates\",\"confidence\":70,\"reasoning\":\"2 sentences\"}";
-      const raw = await callClaude(apiKey, sys, "Question: \""+q+"\"\n\nLIVE DATA:\n"+ctx.slice(0,500), 300);
+      const mktOdds = q.match(/YES.*?(\d+)%/) ? q.match(/YES.*?(\d+)%/)[1]+"% YES on Kalshi" : "odds unknown";
+      const sys = "You are "+a.name+" on the Oracle prediction council.\n\nYOUR PERSONALITY & METHOD:\n"+a.trait+"\n\nRULES:\n- The market is currently priced at: "+mktOdds+". Use this as your anchor.\n- Give a specific YES or NO with exact numbers/dates\n- Your reasoning must reflect YOUR specific personality method above\n- Be contrarian to consensus only if your method supports it\n- JSON only, no markdown\n\nFORMAT: {\"prediction\":\"one specific sentence\",\"bet\":\"YES/NO — exact claim with numbers and dates\",\"confidence\":75,\"reasoning\":\"2-3 sentences showing your specific analytical method\"}";
+      const raw = await callClaude(apiKey, sys, "MARKET QUESTION: "+q+"\n\nCURRENT ODDS: "+mktOdds+"\n\nLIVE CONTEXT:\n"+ctx.slice(0,400), 350);
       const p = parseJ(raw) || { prediction:"Analysis inconclusive.", bet:"NO — insufficient data", confidence:50, reasoning:"Could not analyze." };
       predictions.push({ ...p, id:a.id });
       log({ type:"pred", id:a.id, ...p });
@@ -1119,7 +1120,16 @@ Raw JSON array only.`;
         )}
 
         {/* ══════════════════ ROSTER ══════════════════ */}
-        {tab===MAIN_TABS.ROSTER && (
+        {tab===MAIN_TABS.ROSTER && (() => {
+          const calibration = DEFAULT_COUNCIL.map(a => {
+            const won = history.filter(h => h.advisorId === a.id);
+            const wins = won.filter(h => h.outcome === "WIN").length;
+            const losses = won.filter(h => h.outcome === "LOSS").length;
+            const total = wins + losses;
+            const winRate = total > 0 ? Math.round((wins/total)*100) : null;
+            return { ...a, wins, losses, total, winRate };
+          });
+          return (
           <div>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"1.5rem", flexWrap:"wrap", gap:"1rem" }}>
               <div>
