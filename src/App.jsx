@@ -1265,7 +1265,7 @@ Raw JSON array only.`;
               {activeAdv && <div style={{ ...S.R, fontSize:".8rem", color:"#444", marginTop:".75rem", fontStyle:"italic" }}>Your active advisor replaces The Futurist (slot 7) in the council.</div>}
             </div>
           </div>
-        )}
+        ); })()}
 
         {/* ══════════════════ LEADERBOARD ══════════════════ */}
 
