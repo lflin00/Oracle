@@ -3,6 +3,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET');
 
   const { horizon, ticker } = req.query;
+
   if (ticker) {
     try {
       const response = await fetch('https://api.elections.kalshi.com/trade-api/v2/markets?tickers=' + encodeURIComponent(ticker));
@@ -10,15 +11,17 @@ export default async function handler(req, res) {
       return res.status(200).json(data);
     } catch(e) { return res.status(500).json({ error: e.message }); }
   }
+
   if (horizon === 'all') {
     try {
-      const response = await fetch('https://api.elections.kalshi.com/trade-api/v2/markets?status=open&limit=100');
+      const response = await fetch('https://api.elections.kalshi.com/trade-api/v2/markets?status=open&limit=200');
       const data = await response.json();
       return res.status(200).json(data);
     } catch(e) { return res.status(500).json({ error: e.message }); }
   }
+
   const now = new Date();
-  const params = new URLSearchParams({ status: 'open', limit: '100' });
+  const params = new URLSearchParams({ status: 'open', limit: '200' });
 
   if (horizon === 'ultrashort') {
     const d = new Date(now); d.setHours(now.getHours() + 48);
@@ -41,7 +44,16 @@ export default async function handler(req, res) {
       `https://api.elections.kalshi.com/trade-api/v2/markets?${params.toString()}`
     );
     const data = await response.json();
-    res.status(200).json(data);
+
+    // Filter out sports markets to improve diversity
+    const sports = ['NBA','NFL','NHL','MLB','NCAA','NCAAB','NCAAF','soccer','tennis','golf','UFC','MMA','wrestling','basketball','football','baseball','hockey'];
+    const markets = (data.markets || []);
+    const nonSports = markets.filter(m => !sports.some(s => m.title?.toLowerCase().includes(s.toLowerCase()) || m.event_ticker?.toLowerCase().includes(s.toLowerCase())));
+    const sportsMarkets = markets.filter(m => sports.some(s => m.title?.toLowerCase().includes(s.toLowerCase()) || m.event_ticker?.toLowerCase().includes(s.toLowerCase())));
+
+    // Return mix: prioritize non-sports but include some sports
+    const mixed = [...nonSports, ...sportsMarkets.slice(0, 20)];
+    res.status(200).json({ ...data, markets: mixed });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
